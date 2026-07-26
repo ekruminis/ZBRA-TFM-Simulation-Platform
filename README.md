@@ -16,6 +16,7 @@ The core idea hasn't changed — take a set of real or synthetic transactions, d
   endpoint that ranks the mechanisms against each other; reproducible with the same seed and dataset.
 - Datasets are read from a local file or an AWS S3 bucket.
 - Runs on Docker Compose or Kubernetes, with Prometheus, Grafana and Kibana wired in for metrics.
+- Covered by JUnit/Mockito unit tests and Testcontainers integration tests.
 
 ## How it works
 
@@ -114,6 +115,17 @@ docker compose -f docker-compose.yml -f docker-compose.ec2.yml --profile apps up
 Grafana and the query-api are then reachable on the instance's public IP once the ports are opened.
 
 ![Grafana pipeline dashboard running on EC2](docs/images/grafana-ec2.png)
+
+## Testing
+
+There are JUnit/Mockito unit tests covering the five mechanisms, the pacing model and the query-api
+service layer, plus Testcontainers integration tests that spin up real Kafka and Postgres to run the
+producer and simulation against them.
+
+```bash
+mvn test    # unit tests only, no Docker
+mvn verify  # adds the integration tests, needs Docker running
+```
 
 ## Input data format
 
