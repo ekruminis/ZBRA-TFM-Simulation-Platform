@@ -59,6 +59,12 @@ services:
       ES_JAVA_OPTS: "-Xms1g -Xmx1g"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.4
@@ -158,9 +164,12 @@ services:
       SPRING_DATA_MONGODB_URI: mongodb://txpipe:txpipe@mongo:27017/tx_analytics?authSource=admin
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
     depends_on:
-      - kafka
-      - mongo
-      - elasticsearch
+      kafka:
+        condition: service_started
+      mongo:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     restart: unless-stopped
 
   query-api:
@@ -180,11 +189,16 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
     depends_on:
-      - kafka
-      - postgres
-      - mongo
-      - redis
-      - elasticsearch
+      kafka:
+        condition: service_started
+      postgres:
+        condition: service_started
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

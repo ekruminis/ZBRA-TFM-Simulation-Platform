@@ -1,20 +1,22 @@
 package com.ekruminis.txanalytics.indexer.mongo;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import com.ekruminis.txanalytics.wire.TxResult;
 
 @Document(collection = "tx_results")
 @CompoundIndexes({
-        @CompoundIndex(name = "run_txhash", def = "{'runId': 1, 'txHash': 1}")
+        @CompoundIndex(name = "run_txhash_height",
+                def = "{'runId': 1, 'txHash': 1, 'height': 1}", unique = true)
 })
 public class TxResultDoc {
 
-    @Id
+    @MongoId(FieldType.OBJECT_ID)
     private String id;
 
     private String runId;
@@ -37,7 +39,6 @@ public class TxResultDoc {
 
     public static TxResultDoc from(TxResult r) {
         TxResultDoc d = new TxResultDoc();
-        d.id = r.runId() + ":" + r.txHash() + ":" + r.height();
         d.runId = r.runId();
         d.tfm = r.tfm();
         d.height = r.height();
