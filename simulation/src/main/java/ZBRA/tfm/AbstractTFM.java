@@ -19,7 +19,5 @@ public abstract class AbstractTFM {
         return type;
     }
 
-    abstract public String[] logHeaders();
-
     abstract public Data fetchValidTX(ArrayList<Transaction> mempool, double weightLimit, ArrayList<Block> block, Miner miner, double target);
 }

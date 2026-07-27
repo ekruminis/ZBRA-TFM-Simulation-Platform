@@ -61,8 +61,9 @@ public class SimulationCommandConsumer {
                     .map(e -> engineFactory.create(e.getKey(), command.seed(), command.numMiners(),
                             e.getValue(), genesis, command.blockTimeIntervalSeconds()))
                     .toList();
-            CycleAssembler assembler = new CycleAssembler(engines, command.partitions());
-            replayStream(command.sourceTopic(), command.partitions(), assembler);
+            try (CycleAssembler assembler = new CycleAssembler(engines, command.partitions())) {
+                replayStream(command.sourceTopic(), command.partitions(), assembler);
+            }
             log.info("sim command complete: {} TFM(s) mined from {}", engines.size(), command.sourceTopic());
         } catch (Exception e) {
             log.error("sim command failed", e);
@@ -84,7 +85,7 @@ public class SimulationCommandConsumer {
                     }
                     long cycle = Long.parseLong(header(record, "cycle"));
                     String datasetHash = header(record, "dataset");
-                    assembler.accept(record.partition(), cycle, datasetHash, toDomain(record.value()));
+                    assembler.accept(record.partition(), cycle, datasetHash, toDomain(record.value(), cycle));
                 }
             }
         }
@@ -108,9 +109,9 @@ public class SimulationCommandConsumer {
         return new String(record.headers().lastHeader(key).value(), StandardCharsets.UTF_8);
     }
 
-    private static Transaction toDomain(TransactionMessage m) {
+    private static Transaction toDomain(TransactionMessage m, long cycle) {
         double size = Double.parseDouble(m.getSize());
         double fee = Double.parseDouble(m.getFee());
-        return new Transaction(m.getHash(), size, size, fee);
+        return new Transaction(m.getHash(), size, size, fee, cycle);
     }
 }

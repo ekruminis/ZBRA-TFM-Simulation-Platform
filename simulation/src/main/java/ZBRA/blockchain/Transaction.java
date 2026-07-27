@@ -7,14 +7,20 @@ public class Transaction {
     double byteFee; // fee per byte
     double weightFee; // fee per weight unit
     double totalFee; // total offered in fees
+    long arrivalCycle; // cycle this tx reached the mempool in; older sorts first on equal fees
 
     public Transaction(String h, double s, double w, double f) {
+        this(h, s, w, f, 0L);
+    }
+
+    public Transaction(String h, double s, double w, double f, long arrivalCycle) {
         this.hash = h;
         this.size = s;
         this.weight = w;
         this.totalFee = f;
         this.byteFee = totalFee / size;
         this.weightFee = totalFee / weight;
+        this.arrivalCycle = arrivalCycle;
     }
 
     public String getHash() {
@@ -39,6 +45,10 @@ public class Transaction {
 
     public double getTotalFee() {
         return totalFee;
+    }
+
+    public long getArrivalCycle() {
+        return arrivalCycle;
     }
 
     @Override

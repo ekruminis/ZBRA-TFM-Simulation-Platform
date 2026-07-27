@@ -26,45 +26,7 @@ public class ReservePool extends AbstractTFM {
 
 
     // used for logging each tx data
-    public String[] logStart(int index, String hash, double feeTotal, double feeBase, double feeTip, double weight, double size) {
-        return new String[] {
-                String.valueOf(index),
-                hash,
-                String.valueOf(feeTotal),
-                String.valueOf(feeBase),
-                String.valueOf(feeTip),
-                String.valueOf(weight),
-                String.valueOf(size)
-        };
-    }
 
-    @Override
-    public String[] logHeaders() {
-        return new String[] {
-                "Time",
-                "Block Height",
-                "Parent Hash",
-                "Current Hash",
-                "Miner ID",
-                "Miner Rewards",
-                "Block Reward (total)",
-                "Block Reward in Base Fees",
-                "Block Reward in Tips",
-                "Block Size",
-                "Block Weight",
-                "Number of TX",
-                "Base Fee",
-                "Reserve Pool Balance",
-                "Pool Contribution",
-                "TX Index",
-                "TX Hash",
-                "TX Paid",
-                "TX Base Fee",
-                "TX Tip",
-                "TX Weight",
-                "TX Size"
-        };
-    }
 
     // Main EIP-1559 Mechanism Implementation
     @Override
@@ -77,7 +39,6 @@ public class ReservePool extends AbstractTFM {
         double sizeUsedUp = 0;
         double weightUsedUp = 0;
 
-        ArrayList<String[]> logs = new ArrayList<>();
         ArrayList<Transaction> txList = new ArrayList<>();
 
         BigDecimal currentPoolBalance = block.getPool();
@@ -125,7 +86,6 @@ public class ReservePool extends AbstractTFM {
             sizeUsedUp += txSize;
             weightUsedUp += txWeight;
 
-            logs.add(logStart(index, tx.getHash(), tx.getTotalFee(), txBaseFee.doubleValue(), txTip.doubleValue(), txWeight, txSize));
             index++;
             i++;
         }
@@ -201,7 +161,7 @@ public class ReservePool extends AbstractTFM {
         }
 
         return new Data(mempool, txList, minerRewards, baseFee, currentPoolBalance, sizeUsedUp, weightUsedUp,
-                blockPoolContribution, minerTakenPublic, minerTakenPrivate, blockFeeTotal, blockTipTotal, logs);
+                blockPoolContribution, minerTakenPublic, minerTakenPrivate, blockFeeTotal, blockTipTotal);
     }
 
     public BigDecimal movingAveragePayout(ArrayList<Block> blockchain, double baseFee, double weightTarget) {

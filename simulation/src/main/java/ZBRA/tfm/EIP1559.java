@@ -16,39 +16,7 @@ public class EIP1559 extends AbstractTFM {
     }
 
     // used for logging each tx data
-    public String[] logStart(int index, String hash, double feePaid, BigDecimal feeBurned, BigDecimal feeTip) {
-        return new String[] {
-                String.valueOf(index),
-                hash,
-                String.valueOf(feePaid),
-                String.valueOf(feeBurned),
-                String.valueOf(feeTip)
-        };
-    }
 
-    @Override
-    public String[] logHeaders() {
-        return new String[] {
-                "Time",
-                "Block Height",
-                "Parent Hash",
-                "Current Hash",
-                "Miner ID",
-                "Block Reward",
-                "Block Size",
-                "Block Weight",
-                "Number of TX",
-                "Base Fee",
-                "Fees Burned",
-                "TX Index",
-                "TX Hash",
-                "TX Paid",
-                "TX Burned",
-                "TX Tip",
-                "TX Weight",
-                "TX Size"
-        };
-    }
 
     @Override
     public Data fetchValidTX(ArrayList<Transaction> mempool, double weightLimit, ArrayList<Block> blockchain, Miner miner, double weightTarget) {
@@ -59,7 +27,6 @@ public class EIP1559 extends AbstractTFM {
         double sizeUsedUp = 0;
         double weightUsedUp = 0;
 
-        ArrayList<String[]> logs = new ArrayList<>();
         BigDecimal totalUserPay = BigDecimal.ZERO;
         BigDecimal minerRewards = BigDecimal.ZERO;
         BigDecimal burned = BigDecimal.ZERO;
@@ -101,7 +68,6 @@ public class EIP1559 extends AbstractTFM {
             BigDecimal feeTip = BigDecimal.valueOf(tx.getTotalFee()).subtract(feeBurned);
             minerRewards = minerRewards.add(feeTip);
 
-            logs.add(logStart(index, tx.getHash(), tx.getTotalFee(), feeBurned, feeTip));
 
             i++;
             index++;
@@ -109,6 +75,6 @@ public class EIP1559 extends AbstractTFM {
 
         mempool.subList(0, txList.size()).clear();
 
-        return new Data(mempool, txList, minerRewards, burned, baseFee, sizeUsedUp, weightUsedUp, logs);
+        return new Data(mempool, txList, minerRewards, burned, baseFee, sizeUsedUp, weightUsedUp);
     }
 }

@@ -15,6 +15,8 @@ import java.util.Random;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ekruminis.txanalytics.wire.BlockResult;
 import com.ekruminis.txanalytics.wire.MinerRoster;
@@ -45,6 +47,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
 public class SimulationEngine {
+
+    private static final Logger log = LoggerFactory.getLogger(SimulationEngine.class);
 
     private final SimulationRun.RunProperties props;
     private final ExperimentRepository experimentRepo;
@@ -99,14 +103,18 @@ public class SimulationEngine {
                 .register(meterRegistry);
     }
 
+    public void ensureInitialised(String datasetHash) {
+        if (!initialised) {
+            initialise(datasetHash);
+        }
+    }
+
     public void mineCycle(String datasetHash, long cycle, List<Transaction> newTxs) {
         mineTimer.record(() -> doMineCycle(datasetHash, cycle, newTxs));
     }
 
     private void doMineCycle(String datasetHash, long cycle, List<Transaction> newTxs) {
-        if (!initialised) {
-            initialise(datasetHash);
-        }
+        ensureInitialised(datasetHash);
 
         mempool.addAll(newTxs);
         Miner winner = getWinningMiner();
@@ -136,10 +144,12 @@ public class SimulationEngine {
             blockchain.subList(0, blockchain.size() - window).clear();
         }
 
-        System.out.printf("[cycle %d] height=%d winner=%d confirmed=%d mempool=%d payout=%.8f%s%n",
-                cycle, height, winner.getID(), results.getConfirmed().size(),
-                mempool.size(), block.getRewards().doubleValue(),
-                tfmSpecificLog(results));
+        if (log.isDebugEnabled()) {
+            log.debug("[{}] cycle {} height={} winner={} confirmed={} mempool={} payout={}{}",
+                    props.tfm(), cycle, height, winner.getID(), results.getConfirmed().size(),
+                    mempool.size(), block.getRewards().toPlainString(),
+                    tfmSpecificLog(results));
+        }
     }
 
     private List<TxResult> buildTxResults(int height, long timestamp, Data results) {
@@ -371,7 +381,7 @@ public class SimulationEngine {
         blockchain.add(anchor);
 
         this.initialised = true;
-        System.out.printf("Initialised run %s [%s] experiment=%s miners=%d totalStake=%d%n",
+        log.info("initialised run {} [{}] experiment={} miners={} totalStake={}",
                 run.getId(), props.tfm(), experiment.getId(), miners.size(), totalStake);
     }
 

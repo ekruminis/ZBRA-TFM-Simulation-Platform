@@ -16,36 +16,7 @@ public class SecondPrice extends AbstractTFM {
     }
 
     // used for logging each tx data
-    public String[] logStart(int index, String hash, double feePaid, double weight, double size) {
-        return new String[] {
-                String.valueOf(index),
-                hash,
-                String.valueOf(feePaid),
-                String.valueOf(weight),
-                String.valueOf(size),
-        };
-    }
 
-    @Override
-    public String[] logHeaders() {
-        return new String[] {
-                "Time",
-                "Block Height",
-                "Parent Hash",
-                "Current Hash",
-                "Miner ID",
-                "Block Reward",
-                "Block Size",
-                "Block Weight",
-                "Number of TX",
-                "Effective Fee",
-                "TX Index",
-                "TX Hash",
-                "TX Offered",
-                "TX Weight",
-                "TX Size"
-        };
-    }
 
     // Main Second-Price Mechanism Implementation
     @Override
@@ -55,7 +26,6 @@ public class SecondPrice extends AbstractTFM {
 
         Block block = blockchain.get(blockchain.size() - 1);
 
-        ArrayList<String[]> logs = new ArrayList<String[]>(); // log data for printing later
         ArrayList<Transaction> confirmed = new ArrayList<Transaction>(); // list of *confirmed* transactions
         double weightUsedUp = 0; // total weight used by current block
         double bytesUsedUp = 0; // total bytes used by current block
@@ -82,7 +52,6 @@ public class SecondPrice extends AbstractTFM {
             confirmed.add(tx);
             bytesUsedUp += tx.getSize();
             weightUsedUp += txWeight;
-            logs.add(logStart(index, tx.getHash(), tx.getTotalFee(), txWeight, tx.getSize()));
             index++;
             processed++;
         }
@@ -99,6 +68,6 @@ public class SecondPrice extends AbstractTFM {
             mempool.subList(0, processed).clear();
         }
 
-        return new Data(mempool, confirmed, rewards, effectiveFee, bytesUsedUp, weightUsedUp, logs);
+        return new Data(mempool, confirmed, rewards, effectiveFee, bytesUsedUp, weightUsedUp);
     }
 }

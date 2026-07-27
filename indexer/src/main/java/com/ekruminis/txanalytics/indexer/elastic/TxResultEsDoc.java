@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 import com.ekruminis.txanalytics.wire.TxResult;
 
 @Document(indexName = "tx_results")
-@Setting(refreshInterval = "30s", replicas = 0)
+@Setting(shards = 4, refreshInterval = "30s", replicas = 0)
 public class TxResultEsDoc {
 
     @Id

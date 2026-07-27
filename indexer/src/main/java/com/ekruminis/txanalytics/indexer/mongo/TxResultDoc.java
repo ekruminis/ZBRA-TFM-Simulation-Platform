@@ -19,7 +19,6 @@ public class TxResultDoc {
 
     private String runId;
 
-    @Indexed
     private String tfm;
 
     private int height;

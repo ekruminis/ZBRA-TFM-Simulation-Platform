@@ -32,8 +32,41 @@ class Burning2ndPriceTest {
         assertThat(result.getBurned()).isEqualByComparingTo(new BigDecimal("100.0"));
     }
 
+    @Test
+    void keepsATransactionThatDoesNotFitInsteadOfDiscardingIt() {
+        Burning2ndPrice mechanism = new Burning2ndPrice();
+        Transaction a = tx("a", 10, 10, 200);
+        Transaction b = tx("b", 10, 10, 150);
+        Transaction c = tx("c", 10, 10, 100);
+
+        Data result = mechanism.fetchValidTX(mempool(a, b, c), 25.0, chain(), null, 0);
+
+        assertThat(result.getConfirmed()).extracting(Transaction::getHash).containsExactly("a");
+        assertThat(result.getMempool()).extracting(Transaction::getHash).contains("c");
+    }
+
+    @Test
+    void breaksEqualFeesByAgeSoTheLongestWaitingGoesFirst() {
+        Burning2ndPrice mechanism = new Burning2ndPrice();
+        Transaction high = tx("high", 10, 10, 200, 1);
+        Transaction newer = tx("aaa", 10, 10, 100, 5);
+        Transaction older = tx("zzz", 10, 10, 100, 1);
+
+        Data result = mechanism.fetchValidTX(mempool(high, newer, older), 35.0, chain(), null, 0);
+
+        assertThat(result.getConfirmed()).extracting(Transaction::getHash)
+                .containsExactly("high", "zzz");
+        assertThat(result.getUnconfirmed()).extracting(Transaction::getHash)
+                .containsExactly("aaa");
+    }
+
     private static ArrayList<Transaction> mempool(Transaction... txs) {
         return new ArrayList<>(List.of(txs));
+    }
+
+    private static Transaction tx(String hash, double size, double weight, double totalFee,
+                                  long arrivalCycle) {
+        return new Transaction(hash, size, weight, totalFee, arrivalCycle);
     }
 
     private static ArrayList<Block> chain() {

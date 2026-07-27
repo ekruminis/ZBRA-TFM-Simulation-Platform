@@ -22,6 +22,9 @@ class CycleAssemblerTest {
     @Mock
     SimulationEngine engine;
 
+    @Mock
+    SimulationEngine otherEngine;
+
     @Test
     void drainsBufferedCyclesInOrderOnceEofArrives() {
         CycleAssembler assembler = new CycleAssembler(List.of(engine), 1);
@@ -33,9 +36,44 @@ class CycleAssemblerTest {
         assembler.markPartitionEof(0);
 
         InOrder ordered = inOrder(engine);
+        ordered.verify(engine).ensureInitialised("ds");
         ordered.verify(engine).mineCycle("ds", 1, List.of(a));
         ordered.verify(engine).mineCycle("ds", 2, List.of(b));
         verifyNoMoreInteractions(engine);
+    }
+
+    @Test
+    void initialisesEveryEngineBeforeMiningStarts() {
+        CycleAssembler assembler = new CycleAssembler(List.of(engine, otherEngine), 1);
+        Transaction a = tx("a");
+
+        assembler.accept(0, 1, "ds", a);
+        assembler.markPartitionEof(0);
+
+        InOrder ordered = inOrder(engine, otherEngine);
+        ordered.verify(engine).ensureInitialised("ds");
+        ordered.verify(otherEngine).ensureInitialised("ds");
+        ordered.verify(engine).mineCycle("ds", 1, List.of(a));
+        verify(otherEngine).mineCycle("ds", 1, List.of(a));
+    }
+
+    @Test
+    void minesEveryEngineThroughCyclesInOrder() {
+        CycleAssembler assembler = new CycleAssembler(List.of(engine, otherEngine), 1);
+        Transaction a = tx("a");
+        Transaction b = tx("b");
+
+        assembler.accept(0, 1, "ds", a);
+        assembler.accept(0, 2, "ds", b);
+        assembler.markPartitionEof(0);
+
+        InOrder first = inOrder(engine);
+        first.verify(engine).mineCycle("ds", 1, List.of(a));
+        first.verify(engine).mineCycle("ds", 2, List.of(b));
+
+        InOrder second = inOrder(otherEngine);
+        second.verify(otherEngine).mineCycle("ds", 1, List.of(a));
+        second.verify(otherEngine).mineCycle("ds", 2, List.of(b));
     }
 
     @Test
@@ -61,6 +99,22 @@ class CycleAssemblerTest {
         assembler.markPartitionEof(1);
         verify(engine).mineCycle(eq("ds"), eq(2L),
                 argThat(txs -> txs.size() == 2 && txs.containsAll(List.of(c, d))));
+    }
+
+    @Test
+    void ordersEachCycleByHashWhateverOrderItArrivesIn() {
+        CycleAssembler assembler = new CycleAssembler(List.of(engine), 2);
+        Transaction a = tx("aa");
+        Transaction b = tx("bb");
+        Transaction c = tx("cc");
+
+        assembler.accept(0, 1, "ds", c);
+        assembler.accept(1, 1, "ds", a);
+        assembler.accept(0, 1, "ds", b);
+        assembler.markPartitionEof(0);
+        assembler.markPartitionEof(1);
+
+        verify(engine).mineCycle("ds", 1, List.of(a, b, c));
     }
 
     private static Transaction tx(String hash) {

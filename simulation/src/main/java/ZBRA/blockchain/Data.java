@@ -13,7 +13,6 @@ public class Data {
     BigDecimal sharedPool = new BigDecimal(0);
     BigDecimal rewards = new BigDecimal(0);
     BigDecimal burned = new BigDecimal(0);
-    ArrayList<String[]> logs;
     long mempoolSize;
     BigDecimal poolEffect;
     boolean takeFromPublic;
@@ -36,10 +35,6 @@ public class Data {
 
     public double getSize() {
         return size;
-    }
-
-    public ArrayList<String[]> getLogs() {
-        return logs;
     }
 
     public BigDecimal getRewards() { return rewards; }
@@ -91,8 +86,7 @@ public class Data {
             ArrayList<Transaction> confirmedTX,
             BigDecimal minerRewards, 
             double bytesUsed,
-            double weightUsed,
-            ArrayList<String[]> logs) {
+            double weightUsed) {
 
         this.mempool = mempool;
         this.confirmed = confirmedTX;
@@ -105,7 +99,6 @@ public class Data {
         this.txCount = confirmedTX.size();
         this.mempoolSize = mempool.size();
 
-        this.logs = logs;
     }
 
     // Second-Price Data Style
@@ -114,8 +107,7 @@ public class Data {
             BigDecimal minerRewards,
             double effectiveFee,
             double bytesUsed,
-            double weightUsed,
-            ArrayList<String[]> logs) {
+            double weightUsed) {
 
         this.mempool = mempool;
         this.confirmed = confirmedTX;
@@ -128,7 +120,6 @@ public class Data {
         this.txCount = confirmedTX.size();
         this.mempoolSize = mempool.size();
 
-        this.logs = logs;
     }
 
     // Burning 2nd Price Data Style
@@ -137,8 +128,7 @@ public class Data {
             ArrayList<Transaction> unconfirmedTX, 
             BigDecimal minerRewards, 
             double effectiveFee, BigDecimal burnedAmount, 
-            double bytesUsed, double weightUsed, 
-            ArrayList<String[]> logs) {
+            double bytesUsed, double weightUsed) {
 
         this.mempool = mempool;
         this.confirmed = confirmedTX;
@@ -153,7 +143,6 @@ public class Data {
         this.txCount = confirmedTX.size();
         this.mempoolSize = mempool.size();
 
-        this.logs = logs;
     }
 
     // EIP-1559 Data Style
@@ -162,8 +151,7 @@ public class Data {
             BigDecimal minerRewards, 
             BigDecimal burnedAmount, 
             double baseFee,
-            double bytesUsed, double weightUsed, 
-            ArrayList<String[]> logs) {
+            double bytesUsed, double weightUsed) {
 
         this.mempool = mempool;
         this.confirmed = confirmedTX;
@@ -177,7 +165,6 @@ public class Data {
         this.txCount = confirmedTX.size();
         this.mempoolSize = mempool.size();
 
-        this.logs = logs;
     }
 
     // Pool Data Style
@@ -191,8 +178,7 @@ public class Data {
             boolean takenFromPublicPool, 
             boolean takenFromPrivatePool, 
             BigDecimal blockTotalReward, 
-            BigDecimal blockTipsTotal, 
-            ArrayList<String[]> logs) {
+            BigDecimal blockTipsTotal) {
 
         this.mempool = mempool;
         this.confirmed = confirmedTX;
@@ -211,6 +197,5 @@ public class Data {
         this.blockTotalReward = blockTotalReward;
         this.blockTipsTotal = blockTipsTotal;
 
-        this.logs = logs;
     }
 }
